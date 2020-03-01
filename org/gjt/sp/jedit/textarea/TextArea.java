@@ -113,8 +113,9 @@ public abstract class TextArea extends JPanel
 			vertical = new JScrollBar(Adjustable.VERTICAL), reqFocus));
 		vertical.setRequestFocusEnabled(false);
 		add(ScrollLayout.RIGHT,verticalBox);
-		add(ScrollLayout.BOTTOM, new JLayer<JComponent>(
-			horizontal = new JScrollBar(Adjustable.HORIZONTAL), reqFocus));
+		horizontalBar = new JLayer<JComponent>(
+				horizontal = new JScrollBar(Adjustable.HORIZONTAL), reqFocus);
+		add(ScrollLayout.BOTTOM, horizontalBar);
 		horizontal.setRequestFocusEnabled(false);
 
 		horizontal.setValues(0,0,0,0);
@@ -143,7 +144,7 @@ public abstract class TextArea extends JPanel
 
 		addFocusListener(new FocusHandler());
 		addMouseWheelListener(new MouseWheelHandler());
-
+		
 		//}}}
 
 		// This doesn't seem very correct, but it fixes a problem
@@ -269,6 +270,38 @@ public abstract class TextArea extends JPanel
 	{
 		return painter;
 	} //}}}
+	
+	/**
+	 * Removes the horizontal scroll bar
+	 */
+	public final void removeHorizontalScrollBar() {
+		horizontalBar.setVisible(false);
+		remove(horizontalBar);
+	}
+	
+	/**
+	 * Add the horizontal scroll bar
+	 */
+	public final void addHorizontalScrollBar() {
+		horizontalBar.setVisible(true);
+		add(ScrollLayout.BOTTOM, horizontalBar);
+	}
+	
+	/**
+	 * Removes the vertical scroll bar
+	 */
+	public final void removeVerticalScrollBar() {
+		verticalBox.setVisible(false);
+		remove(verticalBox);
+	}
+	
+	/**
+	 * Add the vertical scroll bar
+	 */
+	public final void addVerticalScrollBar() {
+		verticalBox.setVisible(true);
+		add(ScrollLayout.RIGHT, verticalBox);
+	}
 
 	//{{{ getGutter() method
 	/**
@@ -352,7 +385,7 @@ public abstract class TextArea extends JPanel
 	//{{{ setQuickCopyEnabled() method
 	/**
 	 * Sets if clicking the middle mouse button pastes the most
-	 * recent selection (% register), and if Control-dragging inserts
+	 * rece)nt selection (% register), and if Control-dragging inserts
 	 * the selection at the caret.
 	 * @param quickCopy A boolean flag
 	 */
@@ -5277,6 +5310,7 @@ loop:		for(int i = lineNo - 1; i >= 0; i--)
 	private final Box verticalBox;
 	private final JScrollBar vertical;
 	private final JScrollBar horizontal;
+	private final JLayer horizontalBar;
 
 	protected JEditBuffer buffer;
 
