@@ -49,6 +49,7 @@ import org.gjt.sp.jedit.JEditActionContext;
 import org.gjt.sp.jedit.JEditActionSet;
 import org.gjt.sp.jedit.JEditBeanShellAction;
 import org.gjt.sp.jedit.TextUtilities;
+import org.gjt.sp.jedit.jEdit;
 import org.gjt.sp.jedit.buffer.JEditBuffer;
 import org.gjt.sp.jedit.input.AbstractInputHandler;
 import org.gjt.sp.jedit.input.DefaultInputHandlerProvider;
@@ -145,6 +146,8 @@ public abstract class TextArea extends JPanel
 		addFocusListener(new FocusHandler());
 		addMouseWheelListener(new MouseWheelHandler());
 		
+		setScrollBars();
+
 		//}}}
 
 		// This doesn't seem very correct, but it fixes a problem
@@ -271,10 +274,35 @@ public abstract class TextArea extends JPanel
 		return painter;
 	} //}}}
 	
+	public final boolean getVisibleScrollBars() {
+		return visibleScrollBars;
+	}
+	
+	/**
+	 * Set scroll bar visibility
+	 */
+	public final void setScrollBars() {
+		if (!visibleScrollBars) {
+			removeHorizontalScrollBar();
+			removeVerticalScrollBar();
+		} else {
+			addHorizontalScrollBar();
+			addVerticalScrollBar();
+		}
+	}
+	
+	/**
+	 * Toggles scroll bar visibility
+	 */
+	public final void toggleScrollBars() {
+		visibleScrollBars = !visibleScrollBars;
+		setScrollBars();
+	}
+	
 	/**
 	 * Removes the horizontal scroll bar
 	 */
-	public final void removeHorizontalScrollBar() {
+	private final void removeHorizontalScrollBar() {
 		horizontalBar.setVisible(false);
 		remove(horizontalBar);
 	}
@@ -282,7 +310,7 @@ public abstract class TextArea extends JPanel
 	/**
 	 * Add the horizontal scroll bar
 	 */
-	public final void addHorizontalScrollBar() {
+	private final void addHorizontalScrollBar() {
 		horizontalBar.setVisible(true);
 		add(ScrollLayout.BOTTOM, horizontalBar);
 	}
@@ -290,7 +318,7 @@ public abstract class TextArea extends JPanel
 	/**
 	 * Removes the vertical scroll bar
 	 */
-	public final void removeVerticalScrollBar() {
+	private final void removeVerticalScrollBar() {
 		verticalBox.setVisible(false);
 		remove(verticalBox);
 	}
@@ -298,7 +326,7 @@ public abstract class TextArea extends JPanel
 	/**
 	 * Add the vertical scroll bar
 	 */
-	public final void addVerticalScrollBar() {
+	private final void addVerticalScrollBar() {
 		verticalBox.setVisible(true);
 		add(ScrollLayout.RIGHT, verticalBox);
 	}
@@ -5311,6 +5339,7 @@ loop:		for(int i = lineNo - 1; i >= 0; i--)
 	private final JScrollBar vertical;
 	private final JScrollBar horizontal;
 	private final JLayer horizontalBar;
+	private boolean visibleScrollBars = jEdit.getBooleanProperty("view.textarea.scrollbars");
 
 	protected JEditBuffer buffer;
 

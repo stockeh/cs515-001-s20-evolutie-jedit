@@ -1564,6 +1564,18 @@
 	</IS_SELECTED>
 </ACTION>
 
+<ACTION NAME="toggle-scroll-bars">
+	<CODE>
+		boolean shown = jEdit.getBooleanProperty("view.textarea.scrollbars");
+		jEdit.setBooleanProperty("view.textarea.scrollbars", !shown);
+		jEdit.propertiesChanged();
+		textArea.toggleScrollBars(); 
+	</CODE>
+	<IS_SELECTED>
+		return textArea.getVisibleScrollBars();
+	</IS_SELECTED>
+</ACTION>
+
 <ACTION NAME="toggle-statusbar">
 	<CODE>
 		boolean showing = view.getStatus().isShowing();

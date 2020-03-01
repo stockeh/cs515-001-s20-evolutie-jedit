@@ -349,6 +349,9 @@ view.gutter.borderWidth=2
 # Gutter displays line numbers
 view.gutter.lineNumbers=true
 
+# Textarea displays scroll bars
+view.textarea.scrollbars=true
+
 # Line numbers are drawn with this alignment (left, center, right)
 view.gutter.numberAlignment=right
 
