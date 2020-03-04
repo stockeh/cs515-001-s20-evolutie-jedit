@@ -370,7 +370,19 @@ public class StatusBar extends JPanel
 				return;
 
 			int bufferLength = buffer.getLength();
-
+			
+			int wordCount = 0;
+			String fullText = buffer.getText().trim();
+			if ( !fullText.isEmpty() ) {
+				wordCount = fullText.split("\\s+").length;
+			}
+			
+			int wordPosition = 0;
+			String caretText = buffer.getText(0, caretPosition).trim();
+			if ( !caretText.isEmpty() ) {
+				wordPosition = caretText.split("\\s+").length;
+			}
+			
 			buffer.getText(start,dot,seg);
 			int virtualPosition = StandardUtilities.getVirtualWidth(seg,
 				buffer.getTabSize());
@@ -416,6 +428,27 @@ public class StatusBar extends JPanel
 			{
 				buf.append('(');
 				buf.append(bufferLength);
+				buf.append(')');
+			}
+			if (jEdit.getBooleanProperty("view.status.show-word-offset", true) &&
+				jEdit.getBooleanProperty("view.status.show-word-count", true))
+			{
+				buf.append('(');
+				buf.append(wordPosition);
+				buf.append('/');
+				buf.append(wordCount);
+				buf.append(')');
+			}
+			else if (jEdit.getBooleanProperty("view.status.show-word-offset", true))
+			{
+				buf.append('(');
+				buf.append(wordPosition);
+				buf.append(')');
+			}
+			else if (jEdit.getBooleanProperty("view.status.show-word-count", true))
+			{
+				buf.append('(');
+				buf.append(wordCount);
 				buf.append(')');
 			}
 

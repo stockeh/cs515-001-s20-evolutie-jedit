@@ -1793,6 +1793,8 @@ options.status.caret.dot=Show caret offset from start of line
 options.status.caret.virtual=Show caret virtual offset from start of line
 options.status.caret.offset=Show caret offset from start of file
 options.status.caret.bufferlength=Show length of file
+options.status.word.offset=Show word offset from start of file
+options.status.word.count=Show number of words in file
 options.status.caret.title=Caret position display options:
 #}}}
 
