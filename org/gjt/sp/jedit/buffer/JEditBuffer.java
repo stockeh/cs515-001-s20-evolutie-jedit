@@ -23,13 +23,34 @@
 
 package org.gjt.sp.jedit.buffer;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
+//}}}
+import javax.annotation.Nonnull;
+import javax.swing.text.Position;
+import javax.swing.text.Segment;
 //{{{ Imports
 import org.gjt.sp.jedit.Debug;
 import org.gjt.sp.jedit.Mode;
 import org.gjt.sp.jedit.TextUtilities;
 import org.gjt.sp.jedit.indent.IndentAction;
 import org.gjt.sp.jedit.indent.IndentRule;
-import org.gjt.sp.jedit.syntax.*;
+import org.gjt.sp.jedit.syntax.DefaultTokenHandler;
+import org.gjt.sp.jedit.syntax.DummyTokenHandler;
+import org.gjt.sp.jedit.syntax.KeywordMap;
+import org.gjt.sp.jedit.syntax.ModeProvider;
+import org.gjt.sp.jedit.syntax.ParserRuleSet;
+import org.gjt.sp.jedit.syntax.Token;
+import org.gjt.sp.jedit.syntax.TokenHandler;
+import org.gjt.sp.jedit.syntax.TokenMarker;
 import org.gjt.sp.jedit.textarea.ColumnBlock;
 import org.gjt.sp.jedit.textarea.ColumnBlockLine;
 import org.gjt.sp.jedit.textarea.Node;
@@ -38,16 +59,6 @@ import org.gjt.sp.jedit.textarea.TextArea;
 import org.gjt.sp.util.IntegerArray;
 import org.gjt.sp.util.Log;
 import org.gjt.sp.util.StandardUtilities;
-
-import javax.annotation.Nonnull;
-import javax.swing.text.Position;
-import javax.swing.text.Segment;
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.regex.Pattern;
-//}}}
 
 /**
  * A <code>JEditBuffer</code> represents the contents of an open text
@@ -2106,39 +2117,9 @@ loop:		for(int i = 0; i < seg.count; i++)
 	 */
 	public void undo(TextArea textArea)
 	{
-		if(undoMgr == null)
-			return;
-
-		if(!isEditable())
-		{
-			javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
-			return;
-		}
-
-		try
-		{
-			writeLock();
-
-			undoInProgress = true;
-			fireBeginUndo();
-			Selection[] s = undoMgr.undo();
-			if(s == null || s.length == 0)
-				javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
-			else
-			{
-				textArea.setCaretPosition(s[s.length - 1].getEnd());
-				textArea.setSelection(s);
-			}
-			fireEndUndo();
-			fireTransactionComplete();
-		}
-		finally
-		{
-			undoInProgress = false;
-
-			writeUnlock();
-		}
+		unredo(textArea, this::fireBeginUndo, undoMgr::undo, this::fireEndUndo);
 	} //}}}
+	
 
 	//{{{ redo() method
 	/**
@@ -2147,6 +2128,21 @@ loop:		for(int i = 0; i < seg.count; i++)
 	 * @since jEdit 2.7pre2
 	 */
 	public void redo(TextArea textArea)
+	{
+		unredo(textArea, this::fireBeginRedo, undoMgr::redo, this::fireEndRedo);
+	} //}}}
+	
+	//{{{ unredo() method
+	/**
+	 * Undo or redo the most recent edit.
+	 * @param textArea the text area
+	 * @param fireBegin functional method call 
+	 * @param operation functional method call with return
+	 * @param fireEnd functional method call
+	 * @since jEdit 4.0pre1
+	 */
+	public void unredo(TextArea textArea, Procedure fireBegin, 
+			Supplier<Selection[]> operation, Procedure fireEnd)
 	{
 		if(undoMgr == null)
 			return;
@@ -2162,8 +2158,8 @@ loop:		for(int i = 0; i < seg.count; i++)
 			writeLock();
 
 			undoInProgress = true;
-			fireBeginRedo();
-			Selection[] s = undoMgr.redo();
+			fireBegin.execute();
+			Selection[] s = operation.get();
 			if(s == null || s.length == 0)
 				javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
 			else
@@ -2171,8 +2167,7 @@ loop:		for(int i = 0; i < seg.count; i++)
 				textArea.setCaretPosition(s[s.length - 1].getEnd());
 				textArea.setSelection(s);
 			}
-
-			fireEndRedo();
+			fireEnd.execute();
 			fireTransactionComplete();
 		}
 		finally
