@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 //}}}
@@ -491,22 +492,7 @@ public class JEditBuffer
 	 */
 	public String getLineText(int line)
 	{
-		if(line < 0 || line >= lineMgr.getLineCount())
-			throw new ArrayIndexOutOfBoundsException(line);
-
-		try
-		{
-			readLock();
-
-			int start = line == 0 ? 0 : lineMgr.getLineEndOffset(line - 1);
-			int end = lineMgr.getLineEndOffset(line);
-
-			return getText(start,end - start - 1);
-		}
-		finally
-		{
-			readUnlock();
-		}
+		return getLineDefault(line, this::getText);
 	}
 
 	/**
@@ -579,6 +565,23 @@ public class JEditBuffer
 	 */
 	public CharSequence getLineSegment(int line)
 	{
+		return getLineDefault(line, this::getSegment);
+	} //}}}
+	
+	
+	//{{{ getLineDefault() method
+	/**
+	 * Returns the text or segment on the specified line.
+	 * This method is thread-safe.
+	 *
+	 * @param line The line index.
+	 * @param getter The generic function to get text or segment. 
+	 * @return The text, or null if the line is invalid
+	 *
+	 * @since jEdit 4.3pre15
+	 */
+	public <R> R getLineDefault(int line, BiFunction<Integer, Integer, R> getter)
+	{
 		if(line < 0 || line >= lineMgr.getLineCount())
 			throw new ArrayIndexOutOfBoundsException(line);
 
@@ -588,8 +591,7 @@ public class JEditBuffer
 
 			int start = line == 0 ? 0 : lineMgr.getLineEndOffset(line - 1);
 			int end = lineMgr.getLineEndOffset(line);
-
-			return getSegment(start,end - start - 1);
+			return getter.apply(start,end - start - 1);
 		}
 		finally
 		{
