@@ -25,7 +25,7 @@ package org.gjt.sp.jedit.textarea;
 //{{{ Imports
 import java.util.ArrayList;
 import java.util.List;
-
+import javax.swing.UIManager;
 import org.gjt.sp.jedit.buffer.JEditBuffer;
 import org.gjt.sp.util.StandardUtilities;
 //}}}
@@ -343,6 +343,10 @@ public abstract class Selection implements Cloneable
 
 			return changed;
 		} //}}}
+
+		public void delete(boolean forward, TextArea textArea) {
+			textArea.setSelectedText(this, null);
+		}
 
 		//}}}
 	} //}}}
@@ -762,6 +766,21 @@ public abstract class Selection implements Cloneable
 				return buffer.getLineStartOffset(line) + returnValue;
 		} //}}}
 
+		public void delete(boolean forward, TextArea textArea) {
+			int startColumn = this.getStartColumn(textArea.getBuffer());
+			if (startColumn == this.getEndColumn(textArea.getBuffer())) {
+				if (!forward && startColumn == 0)
+					javax.swing.UIManager.getLookAndFeel().provideErrorFeedback(null);
+				else
+					textArea.tallCaretDelete(this, forward);
+			} else
+				textArea.setSelectedText(this, null);
+		}
+
 		//}}}
 	} //}}}
+
+	public abstract void delete(boolean forward, TextArea textArea);
 }
+
+
